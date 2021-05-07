@@ -3,3 +3,4 @@ db.sqlite3
 _media/
 .idea/
 migrations/
+__pycache__/
