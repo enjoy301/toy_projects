@@ -1,19 +1,19 @@
 # 코인 가격 예측 프로그램 제작
 # 1. 주요 사용 모듈
 ***
-##1.1 pyupbit
+## 1.1 pyupbit
 ***
-###1.1.1 설치 방법
+### 1.1.1 설치 방법
 ```
 pip install pyupbit
 ```
 ***
-###1.1.2 import 방법
+### 1.1.2 import 방법
 ```
 import pyupbit
 ```
 ***
-###1.1.3 주요 함수들
+### 1.1.3 주요 함수들
 * __get_tickers__
     ```
     print(pyupbit.get_tickers())
