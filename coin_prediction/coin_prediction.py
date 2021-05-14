@@ -17,7 +17,7 @@ def update_code_info(cursor):
             cursor.execute(sql)
         print("coin 목록 UPDATE 완료!")
 
-def update_price_week_each(code, cursor, today):
+def update_price_week_each(code, cursor, today): #REPLACE함수 때매 매번 전체다 reset을 로딩안된날짜만 추가하는 방법으로
     coin_symbol = code[code.index('-')+1:]
     print(coin_symbol+"_price_week UPDATE 중...")
     check_first = 1
