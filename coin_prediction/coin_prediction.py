@@ -17,7 +17,7 @@ def update_code_info(cursor):
             cursor.execute(sql)
         print("coin 목록 UPDATE 완료!")
 
-def update_price_week(code, cursor, today):
+def update_price_week_each(code, cursor, today):
     coin_symbol = code[code.index('-')+1:]
     print(coin_symbol+"_price_week UPDATE 중...")
     check_first = 1
@@ -38,11 +38,28 @@ def update_price_week(code, cursor, today):
     print(coin_symbol+"_price_week UPDATE 완료!")
     #mpf.plot(df, type='candle')
 
+def update_price_week_all(cursor): # update_code_info에서 tickers 받아오는 형식으로 변경 필요
+    tickers = pyupbit.get_tickers(fiat="KRW")
+    for code in tickers:
+        coin_symbol = code[code.index('-') + 1:]
+        sql = "create table if not exists `"+coin_symbol+"_price_week` (" \
+              "`date` datetime, " \
+              "`open` decimal(11,2)," \
+              "`high` decimal(11,2)," \
+              "`low` decimal(11,2)," \
+              "`close` decimal(11,2)," \
+              "`volumn` bigint," \
+              "`diff_rate` decimal(10,5)," \
+              "PRIMARY KEY(`date`));"
+        cursor.execute(sql)
+        update_price_week_each(code, cursor, today)
+
+
 connection = pymysql.connect(host='localhost', port=0, db='Coin', user='root', passwd='Rladmswhd@1', autocommit=True)
 cursor = connection.cursor()
 today = datetime.today().strftime('%Y-%m-%d %H:%M:%S')
 
 #update_code_info(cursor)
-#update_price_week("KRW-BTC", cursor, today)
+#update_price_week_all(cursor)
 
 connection.close()
