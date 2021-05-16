@@ -1,20 +1,9 @@
 import pyupbit
 import pandas as pd
 import mplfinance as mpf
-import matplotlib as plt
+import matplotlib.pyplot as plt
 import pymysql
 from datetime import datetime
-
-def update_code_info(cursor):
-    tickers = pyupbit.get_tickers(fiat="KRW")
-    cursor.execute("select * from coin_info;")
-    result = cursor.fetchall()
-    code_list = [list(i)[0] for i in result]
-    if sorted(tickers) != code_list:
-        print("coin 목록 UPDATE 중...")
-        for i in range(len(tickers)):
-            cursor.execute(f"REPLACE INTO coin_info(code) VALUES('{tickers[i]}');")
-        print("coin 목록 UPDATE 완료!")
 
 def interval_set_count(interval, last_update):
     if interval == "week":
@@ -42,7 +31,6 @@ def interval_set_count(interval, last_update):
             count = int(day_diff)+ 1
         return count
 
-
 def update_price_each(code, cursor, interval):
     coin_symbol = code[code.index('-')+1:]
     table_name = coin_symbol+"_price_"+interval
@@ -68,8 +56,8 @@ def update_price_each(code, cursor, interval):
             diff_rate = 0
         check_first = 0
         date = datetime.strptime(str(df.index[i]), '%Y-%m-%d %H:%M:%S').strftime('%Y%m%d%H%M%S')
-        sql = f"INSERT INTO "+coin_symbol+"_price_"+interval+"(date, volumn, diff_rate) " \
-              f"VALUES({date}, {df.iloc[i]['volume']}, {diff_rate});"
+        sql = f"INSERT INTO "+coin_symbol+"_price_"+interval+"(date, volumn, close, diff_rate) " \
+              f"VALUES({date}, {df.iloc[i]['volume']}, {df.iloc[i]['close']}, {diff_rate});"
         cursor.execute(sql)
     print(table_name+" UPDATE 완료!")
 
@@ -84,6 +72,7 @@ def update_price_all():
             sql = "create table if not exists `"+coin_symbol+"_price_"+interval+"` (" \
                   "`date` datetime, " \
                   "`volumn` int unsigned default 0 not null," \
+                  "`close` decimal(11,2)," \
                   "`diff_rate` decimal(10,5)," \
                   "PRIMARY KEY(`date`));"
             cursor.execute(sql)
@@ -93,4 +82,28 @@ def update_price_all():
             count += 1
         connect.close()
 
-update_price_all()
+def drop_all_tables():
+    connect = pymysql.connect(host='localhost', port=0, db='Coin_week',
+                                user='root', passwd='Rladmswhd@1', autocommit=True)
+    for interval in ["week", "day", "minute240", "minute60"]:
+        cursor = connect.cursor()
+        sql = "DROP DATABASE `Coin_"+interval+"`;"
+        cursor.execute(sql)
+        sql = "CREATE DATABASE `Coin_"+interval+"`;"
+        cursor.execute(sql)
+    connect.close()
+
+
+#update_price_all()
+#drop_all_tables()
+
+connect = pymysql.connect(host='localhost', port=0, db='Coin_week', user='root', passwd='Rladmswhd@1', autocommit=True)
+cursor = connect.cursor()
+sql = "select * from BTC_price_week"
+cursor.execute(sql)
+result = cursor.fetchall()
+price_list = list()
+for i in result:
+    price_list.append(float(i[2]))
+plt.plot(price_list)
+plt.show()
