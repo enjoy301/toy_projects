@@ -16,19 +16,45 @@ def update_code_info(cursor):
             cursor.execute(f"REPLACE INTO coin_info(code) VALUES('{tickers[i]}');")
         print("coin 목록 UPDATE 완료!")
 
-def update_price_week_each(code, cursor):
+def interval_set_count(interval, last_update):
+    if interval == "week":
+        count = 400
+        if last_update != None:
+            day_diff = (datetime.now() - last_update).days
+            count = int(day_diff // 7) + 1
+        return count
+    elif interval == "day":
+        count = 2000
+        if last_update != None:
+            day_diff = (datetime.now() - last_update).seconds / 3600
+            count = int(day_diff // 24) + 1
+        return count
+    elif interval == "minute240": #4시간
+        count = 2000
+        if last_update != None:
+            day_diff = (datetime.now() - last_update).seconds / 3600
+            count = int(day_diff // 4) + 1
+        return count
+    elif interval == "minute60": #1시간
+        count = 2000
+        if last_update != None:
+            day_diff = (datetime.now() - last_update).seconds / 3600
+            count = int(day_diff)+ 1
+        return count
+
+
+def update_price_each(code, cursor, interval):
     coin_symbol = code[code.index('-')+1:]
-    table_name = coin_symbol+"_price_week"
+    table_name = coin_symbol+"_price_"+interval
     print(table_name+" UPDATE 중...")
     cursor.execute("select max(date) from "+table_name+";")
     last_update = cursor.fetchall()[0][0]
 
-    count = 500
-    if last_update != None:
-        day_diff = (datetime.now() - last_update).days
-        count = day_diff//7+1
-    df = pd.DataFrame(pyupbit.get_ohlcv(code, interval="week", count=count).drop('value', axis=1))
-
+    count = interval_set_count(interval, last_update)
+    if count == 1:
+        print(table_name + " UPDATE 완료!")
+        return
+    df = pd.DataFrame(pyupbit.get_ohlcv(code, interval=interval, count=count))
     check_first = 1
     for i in range(len(df)):
         if last_update != None and check_first == 1:
@@ -42,38 +68,29 @@ def update_price_week_each(code, cursor):
             diff_rate = 0
         check_first = 0
         date = datetime.strptime(str(df.index[i]), '%Y-%m-%d %H:%M:%S').strftime('%Y%m%d%H%M%S')
-        sql = f"INSERT INTO "+coin_symbol+"_price_week(date, open, high, low, close, volumn, diff_rate) " \
-              f"VALUES({date}, {df.iloc[i]['open']}, {df.iloc[i]['high']}, {df.iloc[i]['low']}, " \
-              f"{df.iloc[i]['close']}, {df.iloc[i]['volume']}, {diff_rate});"
+        sql = f"INSERT INTO "+coin_symbol+"_price_"+interval+"(date, volumn, diff_rate) " \
+              f"VALUES({date}, {df.iloc[i]['volume']}, {diff_rate});"
         cursor.execute(sql)
     print(table_name+" UPDATE 완료!")
-    #mpf.plot(df, type='candle')
 
-def update_price_week_all(cursor): # 최종때, update_code_info에서 tickers 받아오는 형식으로 변경 필요
+def update_price_all():
     tickers = pyupbit.get_tickers(fiat="KRW")
-    count = 0
-    for code in tickers:
-        coin_symbol = code[code.index('-') + 1:]
-        sql = "create table if not exists `"+coin_symbol+"_price_week` (" \
-              "`date` datetime, " \
-              "`open` decimal(11,2)," \
-              "`high` decimal(11,2)," \
-              "`low` decimal(11,2)," \
-              "`close` decimal(11,2)," \
-              "`volumn` bigint," \
-              "`diff_rate` decimal(10,5)," \
-              "PRIMARY KEY(`date`));"
-        cursor.execute(sql)
-        update_price_week_each(code, cursor)
-        if count == 0:
-            break
-        count += 1
+    for interval in ["week", "day", "minute240", "minute60"]:
+        count = 0
+        connect = pymysql.connect(host='localhost', port=0, db='Coin_'+interval, user='root', passwd='Rladmswhd@1', autocommit=True)
+        cursor = connect.cursor()
+        for code in tickers:
+            coin_symbol = code[code.index('-') + 1:]
+            sql = "create table if not exists `"+coin_symbol+"_price_"+interval+"` (" \
+                  "`date` datetime, " \
+                  "`volumn` int unsigned default 0 not null," \
+                  "`diff_rate` decimal(10,5)," \
+                  "PRIMARY KEY(`date`));"
+            cursor.execute(sql)
+            update_price_each(code, cursor, interval)
+            if count == 1:
+                break
+            count += 1
+        connect.close()
 
-
-connection = pymysql.connect(host='localhost', port=0, db='Coin', user='root', passwd='Rladmswhd@1', autocommit=True)
-cursor = connection.cursor()
-
-#update_code_info(cursor)
-#update_price_week_all(cursor)
-
-connection.close()
+update_price_all()
