@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8"/>
+	<title>은종이 어딨~게</title>
+	<style>
+		#map{
+			position: fixed;
+			top:50%;
+            right: 1%;
+		}
+		#but{
+			position: fixed;
+			top:50%;
+            right: 1%;
+		}
+	</style>
+</head>
+<body>
+	<div id="roadview" style="width:98vw;height:98vh;"></div>
+	<script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=bd0794b5c2387ba4a88167cbb15e1c03"></script>
+	<script>
+		var list = [[35.172818, 129.171536],[35.180911, 129.200617],[35.197041, 129.208764],[35.241144, 129.212175],[35.252494, 129.206275],[35.283570, 129.205509],[35.323600, 129.167111],[35.270732, 129.087271],[35.255416, 129.087371],[35.241908, 129.094463],[35.222235, 129.081386],[35.211670, 129.069784],[35.178920, 129.080457],[35.182167, 128.982790],[35.171982, 128.979507],[35.147241, 128.983270],[35.137825, 128.969800],[35.089621, 128.972167],[35.082347, 128.972684],[35.081232, 128.959519],[35.086185, 129.064613],[35.099420, 129.027953],[35.153977, 129.062477],[35.158626, 129.061190]];
+		var rand = Math.floor(Math.random() * list.length); // 0 <= x < max 정수
+		goal = list[rand]
+
+		var roadviewContainer = document.getElementById('roadview'); //로드뷰를 표시할 div
+		var roadview = new kakao.maps.Roadview(roadviewContainer); //로드뷰 객체
+		var roadviewClient = new kakao.maps.RoadviewClient(); //좌표로부터 로드뷰 파노ID를 가져올 로드뷰 helper객체
+
+		var position = new kakao.maps.LatLng(goal[0], goal[1]);
+
+		// 특정 위치의 좌표와 가까운 로드뷰의 panoId를 추출하여 로드뷰를 띄운다.
+		roadviewClient.getNearestPanoId(position, 50, function(panoId) {
+    		roadview.setPanoId(panoId, position); //panoId와 중심좌표를 통해 로드뷰 실행
+		});
+	</script>
+
+	<div id="map" style="width:300px;height:300px;"></div>
+	<script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=bd0794b5c2387ba4a88167cbb15e1c03"></script>
+	<script>
+		var container = document.getElementById('map');
+		var options = {
+			center: new kakao.maps.LatLng(35.179666, 129.076519),
+			level: 7
+		};
+		var map = new kakao.maps.Map(container, options);
+
+		var marker = new kakao.maps.Marker({
+    		position: map.getCenter() 
+		}); 
+		marker.setMap(map);
+
+		kakao.maps.event.addListener(map, 'click', function(mouseEvent) {
+			latlng = mouseEvent.latLng;
+			marker.setPosition(latlng);
+		});
+		var markers = [];
+		function func(){
+			var difflat = Math.abs(parseFloat(latlng["Ga"])-goal[1]);
+			difflat = (+(difflat).toFixed(3))*1000;
+			var difflng = Math.abs(parseFloat(latlng["Ha"])-goal[0]);
+			difflng = (+(difflng).toFixed(3))*1000;
+
+			var squ_lat = Math.pow(difflat, 2);
+			var squ_lng = Math.pow(difflng, 2);
+			var score = Math.sqrt(squ_lng+squ_lat);
+			score = +(score).toFixed(0);
+			score = 200 - score;
+			if (score<0){
+				score = 0;
+			}
+			alert("점수는 "+score);
+
+			addMarker(new kakao.maps.LatLng(goal[0], goal[1]));
+			var level = map.getLevel();
+			map.setLevel(10);
+		}
+		function addMarker(position) {
+    		// 마커를 생성합니다
+    		var marker = new kakao.maps.Marker({
+        		position: position
+    		});
+    		// 마커가 지도 위에 표시되도록 설정합니다
+    		marker.setMap(map);
+    		// 생성된 마커를 배열에 추가합니다
+    		markers.push(marker);
+		}
+	</script>
+	<input type="button" id="but" value="제출" onclick="func()">
+</body>
+</html>

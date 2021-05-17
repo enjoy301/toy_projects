@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="utf-8">
+    <title>병원 찾기</title>
+    <style>
+        @import url(https://cdn.jsdelivr.net/gh/moonspam/NanumSquare@1.0/nanumsquare.css);
+        body, select, input{/*글씨체, 굵기 지정*/
+            font-family: 'NanumSquare', sans-serif;
+            font-weight: 800;
+        }
+        .detective {/*흰색 박스안 돋보기 아이콘 크기 지정*/
+            width: auto; height: auto;
+            max-width: 18px;
+            max-height: 18px;
+        }
+        
+		#container {/*위쪽 메뉴바*/
+            width:100vw;
+			margin:0;
+			text-align:center;
+			background-color: #F0E5AA;
+            border-bottom-right-radius: 30px;
+            border-bottom-left-radius: 40px;
+            
+		}
+		.tab { /*위쪽 메뉴바의 속성들*/
+			list-style: none;
+			margin: 0;
+			padding: 0;
+			overflow: hidden;
+            border-bottom-right-radius: 20px;
+            border-bottom-left-radius: 20px;
+		}
+		.tab li {
+			float: left;
+		}
+		.tab li a {
+			display: inline-block;
+			color: #000;
+			text-align: center;
+			text-decoration: none;
+			padding: 18px 18px;
+			font-size: 20px;
+			transition:0.3s;
+		}
+		ul.tab li.current{
+			background-color: #F8D653;
+		}
+        #demo2{ /*오른쪽 흰색 박스 스타일 지정*/
+            z-index: 3;
+            width: 210px;
+            height: 120px;
+            position: fixed;
+            top:10%;
+            right: 1%;
+            background-color: white;
+            border-radius: 30px;
+            box-shadow: 5px 5px 4px gray;
+        }
+        #map{ /*맵위치, 속성 지정*/
+            top:0px;
+            right: 0px;
+            position: fixed;
+            z-index: -1;
+        }
+        body{
+            margin: 0px;
+        }
+        p{
+            font-weight: 600;
+        }
+        select{ /*흰색 박스안 input[type=select]속성 지정*/
+            border: 0px;
+        }
+        select::-ms-expand {
+            display: none;
+        }
+        input[type=time] {
+            border: none;
+            width: 100px;
+        }
+        #loadingBar {/*로딩 화면 속성 지정*/
+            width: 100%;
+            height: 100%;
+            top: 0px;
+            left: 0px;
+            position: fixed;
+            display: block;
+            opacity: 0.7;
+            background-color: #fff;
+            z-index: 99;
+            text-align: center;
+        }
+        #loading-image {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            z-index: 100;
+        }
+    </style>
+    <script src="https://code.jquery.com/jquery-1.10.2.js"></script>
+</head>
+<body>
+	<div id="container"><!--위쪽 메뉴바-->
+		<ul class="tab">
+			<li class="current" data-tab="tab1"><a href="#">&nbsp&nbsp병원 찾기&nbsp&nbsp</a></li>
+			<li class="tab1" data-tab="tab2"><a href="#">&nbsp&nbsp치과 찾기&nbsp&nbsp</a></li>
+			<li class="tab2" data-tab="tab3"><a href="#">&nbsp&nbsp한의원 찾기&nbsp&nbsp</a></li>
+			<li class="tab3" data-tab="tab4"><a href="#">&nbsp&nbsp약국 찾기&nbsp&nbsp</a></li>
+		</ul>
+	</div>
+
+	<script>
+		$(function() {/*위쪽 메뉴바를 클릭했을때 주소 이동*/
+			$('ul.tab li.current').click(function() {
+				location.replace('hospital.html');
+            });
+            $('ul.tab li.tab1').click(function() {
+				location.replace('dental.html');
+            });
+            $('ul.tab li.tab2').click(function() {
+				location.replace('korea.html');
+            });
+            $('ul.tab li.tab3').click(function() {
+				location.replace('pharm.html');
+			});
+		});
+    </script>
+    
+<div id="map" style="width:100vw;height:100vh;"></div>
+
+<script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=dff5fc4b5142fe1a35e6adbcb67c3eea"></script>
+<script>
+    var mapContainer = document.getElementById('map'), // 지도를 표시할 div  
+    mapOption = { 
+        center: new kakao.maps.LatLng(35.231609, 129.084152), // 지도의 중심좌표
+        level: 5 //지도 확대 수준
+    };
+    map = new kakao.maps.Map(mapContainer, mapOption);
+
+    navigator.geolocation.getCurrentPosition(function(position) {//위치권한 승인했을때
+        var lat = position.coords.latitude; // 위도
+        var lon = position.coords.longitude; // 경도
+        var moveLatLon = new kakao.maps.LatLng(parseFloat(lat), parseFloat(lon));
+        map.setCenter(moveLatLon); //맵 기준을 자기위치로 바꿈
+    });
+
+    var xhr = new XMLHttpRequest();
+    xhr.withCredentials = true;
+    xhr.addEventListener("readystatechange", function() {
+        if(this.readyState === 4) {
+            var imageSrc = "hospital.png"; //밑3줄은 맵에 띄울 아이콘 지정
+            var imageSize = new kakao.maps.Size(22, 22); 
+            var markerImage = new kakao.maps.MarkerImage(imageSrc, imageSize); 
+
+            var parsed = JSON.parse(this.responseText);
+            var item = parsed.MedicalInstitInfo.item;
+            var length = Object.keys(item).length;
+            var day_obj ={//파싱하면 한글로 요일이 적혀있기 때문에 나중에 1대1로 치환될예정
+                "월":"Monday",
+                "화":"Tuesday",
+                "수":"Wednesday",
+                "목":"Thursday",
+                "금":"Friday",
+                "토":"Saturday",
+                "일":"Sunday"
+            };
+            var marker = new kakao.maps.Marker();
+            for (var i=0;i<length;i++){
+                var temp = item[i];//item안에 의료기관 특징들이 담겨있음
+                var temp_time = temp[day_obj[day]];//특정요일에 시간이 담긴다. 특정요일은 버튼누를때 입력받음
+                if (temp_time != 0){ // temp_time이 0이란 소리는 문안연다는 소리
+                    var start_time = temp_time.replace(/\~\d\d\:\d\d/,"");//밑5줄까지는 시간이 15:00~20:00의 형태로 들어오기때문에 정규식을 이용해서 숫자로 바꾸는과정
+                    start_time = start_time.replace(/\:/,"");
+                    var end_time = temp_time.replace(/\d\d\:\d\d\~/,"");
+                    end_time = end_time.replace(/\:/,"");
+                    time = time.replace(/\:/,"");
+                    if (parseInt(time)>parseInt(start_time) && parseInt(time)<parseInt(end_time)){//이 조건문을 통과한다는 소리는 내가 입력한 시간에 이 의료기관이 열어있다는 소리
+                        var positions = [//포지션안에 좌표를 입력함
+                            {
+                                title: "임시",
+                                latlng: new kakao.maps.LatLng(parseFloat(temp.lat),parseFloat(temp.lng))
+                            }
+                        ]
+                        marker = new kakao.maps.Marker({//마커를 만들어서 화면에 띄움
+                            map: map,
+                            position: positions[0].latlng,
+                            title : temp.instit_nm,
+                            image : markerImage
+                        });
+                        var content1 = "<div>"+temp.instit_nm+"</div>"+"<div>"+temp.tel+"</div>"+"<div>"+temp.street_nm_addr+"</div>";
+                        var infowindow = new kakao.maps.InfoWindow({
+                            content: content1 // 마우스 올렸을때 생기는 박스에 표시할 내용
+                        });
+                        kakao.maps.event.addListener(marker, 'mouseover', makeOverListener(map, marker, infowindow)); // 마우스 올렸을때에 함수
+                        kakao.maps.event.addListener(marker, 'mouseout', makeOutListener(infowindow)); // 마우스 내렸을때에 함수
+                    }
+                }
+            }
+            $("#loadingBar").hide(); //마커, 인포윈도우를 다 설정했으면 로딩바를 숨김
+        }
+        function makeOverListener(map, marker, infowindow) { // 마우스 올렸을대 함수
+            return function() {
+                infowindow.open(map, marker);
+            };
+        }
+
+        function makeOutListener(infowindow) {// 마우스 내렸을대 함수
+            return function() {
+                infowindow.close();
+            };
+        }
+    });
+    function clickfunc(){ //흰색 박스안 버튼을 누르면 nodejs를 호출한다.
+        var url= "http://localhost:3000/hospital";
+        day = document.getElementById('day').value; //내가입력한 요일값
+        time = document.getElementById('time').value; // 시간값
+        xhr.open("GET", url);
+        xhr.send();
+    }
+	$(document).ready(function () { // 로딩창을 띄우는 역할
+		$('#btn').on('click', function (e) {
+			e.preventDefault();
+			$("#loadingBar").show();
+		});
+	});
+</script>
+
+<div id="loadingBar" style="display:none;">
+    <img id="loading-image" src="https://t1.daumcdn.net/cfile/tistory/2137C3335785AC9B11" alt="loading..." />
+</div>
+<div id="demo2"><!--흰색 박스안 요소들-->
+    <p style="margin : 13px 0px 0px 15px; "><img style="vertical-align:middle; margin-right: 5px;" class='detective' size=""src="detective.png"/>&nbsp여는 곳 찾기</p>
+    <p style="padding-left: 40px; margin: 10px 0px 4px 0px;"><select id="day" style="vertical-align:middle;">
+        <option>월</option>
+        <option>화</option>
+        <option>수</option>
+        <option>목</option>
+        <option>금</option>
+        <option>토</option>
+        <option>일</option>
+    </select>
+    요일</p>
+    <p style="padding-left: 42px; margin: 4px 0px 4px 0px; "><input type="time" id="time" value="13:00" min="00:00" max="23:59" id="time"></p>
+    <button id="btn" style="margin-left: 42px; outline :0; padding: 0px 0px; border: 0px; background-color: white; height: 20px;" onclick="clickfunc()"><img style="height: 20px; width:70px;" src="button.png" alt=""></button>
+</div>
+<div id="tbl0"></div>
+</body>
+</html>
