@@ -1,5 +1,15 @@
-- django_blog : 장고를 이용해서 블로그 제작
+- better_school_life : Auto enrollment and attendance check at PNU
 
-- minesweeper_pygame : 파이게임을 이용한 삼각형 버전 지뢰찾기
+- coin_prediction : Coin price prediction through pattern analysis
 
-- coin_prediction : mysql 응용 코인 가격 예측
+- django_blog : Make a blog using a Django
+
+- finding_medical_institution : Nearby medical institution search in Korea webpage using API 
+
+- game_find_where_am_i : A game of finding location watching loadview using KAKAO MAP API
+
+- hand_detection : Hand detect algorithm using cv2 in python
+
+- minesweeper_pygame : Triangular version minesweeper
+
+- sign_language_recognition : Sign language recognition algorithm using hand detection algorithm and KNN classification 
