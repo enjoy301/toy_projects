@@ -1,7 +1,5 @@
 import pyupbit
-from pyupbit import WebSocketManager as upWM
-from pybithumb import Bithumb
-from pybithumb import WebSocketManager as thWM
+from pyupbit import WebSocketManager as WM
 import pandas as pd
 import matplotlib.pyplot as plt
 import pymysql
@@ -108,3 +106,13 @@ def plot_chart():
     plt.plot(price_list)
     plt.show()
     connect.close()
+
+def real_time_conclusion():
+    if __name__ == "__main__":
+        tickers = pyupbit.get_tickers(fiat="KRW")
+        wm = WM("trade", tickers)
+        while True:
+            data = wm.get()
+            if data['trade_price'] * data['trade_volume'] > 50000000:
+               print(str(int(data['trade_price'] * data['trade_volume']))+"원", data)
+        upwm.terminate()
