@@ -1,6 +1,8 @@
 import pyupbit
+from pyupbit import WebSocketManager as upWM
+from pybithumb import Bithumb
+from pybithumb import WebSocketManager as thWM
 import pandas as pd
-import mplfinance as mpf
 import matplotlib.pyplot as plt
 import pymysql
 from datetime import datetime
@@ -93,17 +95,16 @@ def drop_all_tables():
         cursor.execute(sql)
     connect.close()
 
-
-#update_price_all()
-#drop_all_tables()
-
-connect = pymysql.connect(host='localhost', port=0, db='Coin_week', user='root', passwd='Rladmswhd@1', autocommit=True)
-cursor = connect.cursor()
-sql = "select * from BTC_price_week"
-cursor.execute(sql)
-result = cursor.fetchall()
-price_list = list()
-for i in result:
-    price_list.append(float(i[2]))
-plt.plot(price_list)
-plt.show()
+def plot_chart():
+    connect = pymysql.connect(host='localhost', port=0, db='Coin_week', user='root', passwd='Rladmswhd@1',
+                              autocommit=True)
+    cursor = connect.cursor()
+    sql = "select * from BTC_price_week"
+    cursor.execute(sql)
+    result = cursor.fetchall()
+    price_list = list()
+    for i in result:
+        price_list.append(float(i[2]))
+    plt.plot(price_list)
+    plt.show()
+    connect.close()
