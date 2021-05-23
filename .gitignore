@@ -4,3 +4,4 @@ _media/
 .idea/
 migrations/
 __pycache__/
+*.caffemodel
