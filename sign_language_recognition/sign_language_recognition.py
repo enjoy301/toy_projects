@@ -4,13 +4,13 @@ import mediapipe as mp
 import joblib
 from collections import Counter
 import math
-import hangul_utils
+from files.unicode import join_jamos
 from gtts import gTTS
 from playsound import playsound
 
 def on_mouse(event, x, y, flags, param):
     global my_word
-    text = hangul_utils.join_jamos(my_word)
+    text = join_jamos(my_word)
     if event == cv2.EVENT_LBUTTONDOWN:
         var = gTTS(text=text, lang='ko', slow=False)
         var.save('files/speak.mp3')
@@ -65,7 +65,7 @@ while True:
                     checker2 = 0
                     my_word += ch
                 temp_ch = ch
-                print(hangul_utils.join_jamos(my_word))
+                print(join_jamos(my_word))
                 checker1 = 0
             elif ch in mo:  # 모음입력
                 if temp_ch == 'ㅗ' and ch in mo2:  # ㅗ였고 ㅏorㅐ이면
@@ -90,7 +90,7 @@ while True:
                     else:
                         temp_ch = ch
                 my_word += ch
-                print(hangul_utils.join_jamos(my_word))
+                print(join_jamos(my_word))
             else:  # a, b, c or d입력
                 checker2 = 0
                 if ch == 'a':
@@ -101,7 +101,7 @@ while True:
                     my_word = my_word[:-1]
                 elif ch == 'd':
                     my_word += ' '
-                print(hangul_utils.join_jamos(my_word))
+                print(join_jamos(my_word))
                 temp_ch = ch
         dump_list = []
     image = cv2.cvtColor(cv2.flip(image, 1), cv2.COLOR_BGR2RGB)
