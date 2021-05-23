@@ -1,9 +1,9 @@
 from __future__ import division
 import cv2
-import time
 import numpy as np
 
-t = time.time()
+print("input 'q' to close")
+
 protoFile = "files/pose_deploy.prototxt"
 weightsFile = "files/pose_iter_102000.caffemodel"
 nPoints = 22
@@ -17,7 +17,6 @@ frameHeight = frame.shape[0]
 aspect_ratio = frameWidth/frameHeight
 
 threshold = 0.1
-print("0time taken by network : {:.3f}".format(time.time() - t))
 
 # input image dimensions for the network
 inHeight = 368
@@ -57,5 +56,6 @@ for pair in POSE_PAIRS:
 cv2.imshow('Output-Keypoints', frameCopy)
 cv2.imshow('Output-Skeleton', frame)
 
-
-cv2.waitKey(0)
+while True:
+    if cv2.waitKey(1) == ord('q'):
+        break
