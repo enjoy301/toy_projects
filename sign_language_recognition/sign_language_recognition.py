@@ -16,7 +16,7 @@ def on_mouse(event, x, y, flags, param):
         var.save('files/speak.mp3')
         playsound('files/speak.mp3')
 
-kn = joblib.load('files/temp_model_sun.pkl')
+kn = joblib.load('files/ML-model.pkl')
 print("start...")
 cv2.namedWindow('window')
 cv2.setMouseCallback('window', on_mouse)
