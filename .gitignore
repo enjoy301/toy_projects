@@ -5,4 +5,3 @@ _media/
 migrations/
 __pycache__/
 *.caffemodel
-__pycache__/
