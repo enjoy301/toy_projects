@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 import pymysql
 from datetime import datetime
 
+
 def interval_set_count(interval, last_update):
     if interval == "week":
         count = 400
@@ -110,9 +111,12 @@ def plot_chart():
 def real_time_conclusion():
     if __name__ == "__main__":
         tickers = pyupbit.get_tickers(fiat="KRW")
-        wm = WM("trade", tickers)
-        while True:
+        wm = WM("orderbook", ['KRW-BTC'])
+        while True: #ask-매도 bid-매수
             data = wm.get()
-            if data['trade_price'] * data['trade_volume'] > 50000000:
-               print(str(int(data['trade_price'] * data['trade_volume']))+"원", data)
-        upwm.terminate()
+            value = round(data['total_ask_size']-data['total_bid_size'])
+            if abs(value) > 5:
+                print((value, 5), datetime.fromtimestamp(data['timestamp']/1000)) # 양수면 파는사람이 많다
+        wm.terminate()
+
+real_time_conclusion()
