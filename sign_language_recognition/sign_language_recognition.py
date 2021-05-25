@@ -5,21 +5,10 @@ import joblib
 from collections import Counter
 import math
 from files.unicode import join_jamos
-from gtts import gTTS
-from playsound import playsound
-
-def on_mouse(event, x, y, flags, param):
-    global my_word
-    text = join_jamos(my_word)
-    if event == cv2.EVENT_LBUTTONDOWN:
-        var = gTTS(text=text, lang='ko', slow=False)
-        var.save('files/speak.mp3')
-        playsound('files/speak.mp3')
 
 kn = joblib.load('files/ML-model.pkl')
 print("start...")
 cv2.namedWindow('window')
-cv2.setMouseCallback('window', on_mouse)
 cap = cv2.VideoCapture(0)
 w = round(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
 h = round(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))

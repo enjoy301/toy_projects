@@ -11,8 +11,7 @@ POSE_PAIRS = [ [0,1],[1,2],[2,3],[3,4],[0,5],[5,6],[6,7],[7,8],[0,9],[9,10],[10,
 threshold = 0.2
 
 
-input_source = "files/asl.mp4"
-cap = cv2.VideoCapture(input_source)
+cap = cv2.VideoCapture(0)
 hasFrame, frame = cap.read()
 
 frameWidth = frame.shape[1]
@@ -75,17 +74,10 @@ while 1:
             cv2.circle(frame, points[partA], 5, (0, 0, 255), thickness=-1, lineType=cv2.FILLED)
             cv2.circle(frame, points[partB], 5, (0, 0, 255), thickness=-1, lineType=cv2.FILLED)
 
-    print("Time Taken for frame = {}".format(time.time() - t))
-
-    # cv2.putText(frame, "time taken = {:.2f} sec".format(time.time() - t), (50, 50), cv2.FONT_HERSHEY_COMPLEX, .8, (255, 50, 0), 2, lineType=cv2.LINE_AA)
-    # cv2.putText(frame, "Hand Pose using OpenCV", (50, 50), cv2.FONT_HERSHEY_COMPLEX, 1, (255, 50, 0), 2, lineType=cv2.LINE_AA)
     cv2.imshow('Output-Skeleton', frame)
-    # cv2.imwrite("video_output/{:03d}.jpg".format(k), frame)
     key = cv2.waitKey(1)
     if key == ord('q'):
         break
-
-    print("total = {}".format(time.time() - t))
 
     vid_writer.write(frame)
 

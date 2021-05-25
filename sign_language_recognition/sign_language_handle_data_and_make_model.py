@@ -3,6 +3,7 @@ import mediapipe as mp
 import csv
 import time
 import math
+import os
 import pandas as pd
 import random
 import numpy as np
@@ -10,7 +11,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.neighbors import KNeighborsClassifier
 import joblib
 
-def make_csv():
+def record_video_and_make_csv():
     is_save = False
     label_num = -1
 
@@ -20,9 +21,14 @@ def make_csv():
         if event == cv2.EVENT_LBUTTONDOWN:
             is_save = not is_save
             if is_save == True:
-                label_num = input("label_num : ")
+                label_num = input("label_num(0 ~ 34) 입력 : ")
+                print("한번 더 클릭 시 데이터화가 중단됩니다...")
+            else:
+                print("데이터화 종료")
+
 
     def record_video():
+        print("녹화를 시작합니다... (녹화 종료 == q)")
         global w
         global h
         cv2.namedWindow('window')
@@ -42,6 +48,7 @@ def make_csv():
             cv2.imshow('window', image)
             if cv2.waitKey(1) == ord('q'):
                 break
+        print("녹화가 종료되었습니다.")
         out.release()
         cap.release()
         cv2.destroyAllWindows()
@@ -56,6 +63,8 @@ def make_csv():
         f.close()
 
     def make_csv(file_name):
+        print("곧 영상이 실행됩니다. 화면을 클릭해 label을 입력하세요.")
+        time.sleep(1)
         cv2.namedWindow('window2')
         cv2.setMouseCallback('window2', on_mouse)
         mp_drawing = mp.solutions.drawing_utils
@@ -115,31 +124,32 @@ def make_csv():
                             d34 = math.sqrt(pow(d16.x * w - d12.x * w, 2) + pow(d16.y * h - d12.y * h, 2))
                             feature_list.append(d23 / d34 - 1)
                             feature_list.append((max_y - min_y) / (max_x - min_x) - 1)
-                            image = cv2.rectangle(image, (int(min_x), int(min_y)), (int(max_x), int(max_y)), (0, 0, 0),
-                                                  2)
+                            image = cv2.rectangle(image, (int(min_x), int(min_y)), (int(max_x), int(max_y)), (0, 0, 0), 2)
                             feature_list.append(label_num)
                             wr.writerow(feature_list)
-                            feature_list = []  # 요기까지 오른손 용
+                            feature_list = []
                 previous_time = time.time()
                 cv2.imshow('window2', image)
                 if cv2.waitKey(1) == ord('q'):
                     break
+        if os.path.isfile("./"+file_name):
+            os.remove("./"+file_name)
         cap.release()
         f.close()
         hands.close()
         cv2.destroyAllWindows()
 
-    i = input("입력(0 or else) : ")  # 0이면 녹화시작 파일이름이면 그 동영상으로
-    if i == '0':
-        file_name = record_video()
-    else:
-        file_name = "files/" + i
-    make_csv(file_name)
-
-    j = input("입력(0 or else) : ")
-    if i == '0':
+    make_csv(record_video())
+    i = input("temp_data.csv에 임시 저장됨.\ndataset.csv에 추가하시겠습니까?(y|n) : ")
+    if i == 'y' or i == 'Y' or i == 'yes' or i == 'YES' or i == 'Yes':
         data_merge()
+    else:
+        return
 
+
+# data_preprocessing()
+# label - c의 개수를 맞춰주는 함수
+# 몇몇의 자모만 개수가 많아지는 현상을 막기 위함
 def data_preprocessing():
     data = pd.read_csv("files/dataset.csv")
     value_data = pd.DataFrame(pd.value_counts(data[list(data)[-1]].values, sort=False))
@@ -154,10 +164,11 @@ def data_preprocessing():
         a = random.sample(range(0, len(temp_list)), my_abs)  # temp_list의 인덱스
         for j in a:
             drop_list.append(temp_list[j])
-    print("최소갯수는 ", my_min)
-    print("최대갯수는 ", my_max)
+    print("label c의 최소 개수는 ", my_min, " / 최대 개수는 ", my_max)
     data = data.drop(drop_list)
     data.to_csv("files/dataset.csv", mode='w', index=False)
+    print("데이터 전처리 완료")
+
 
 def make_model():
     data = pd.read_csv('files/dataset.csv')
@@ -168,8 +179,12 @@ def make_model():
     train_input, test_input, train_target, test_target = train_test_split(data_input, data_target)
     kn = KNeighborsClassifier(n_neighbors=3)
     kn.fit(train_input, train_target)
-    print(kn.score(test_input, test_target))
+    print("모델 점수 : ", kn.score(test_input, test_target))
     joblib.dump(kn, 'files/ML-model.pkl')
-    print("학습 모델 저장 완료")
+    print("pkl파일에 학습 모델 저장 완료")
 
-data_preprocessing()
+
+
+#record_video_and_make_csv()
+#data_preprocessing()
+#make_model()
