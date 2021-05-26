@@ -5,3 +5,5 @@ _media/
 migrations/
 __pycache__/
 *.caffemodel
+.env.prod
+.env.prod.db
