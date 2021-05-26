@@ -114,9 +114,9 @@ def real_time_conclusion():
         wm = WM("orderbook", ['KRW-BTC'])
         while True: #ask-매도 bid-매수
             data = wm.get()
-            value = round(data['total_ask_size']-data['total_bid_size'])
+            value = data['total_ask_size']-data['total_bid_size']
             if abs(value) > 5:
-                print((value, 5), datetime.fromtimestamp(data['timestamp']/1000)) # 양수면 파는사람이 많다
+                print(round(value, 5), datetime.fromtimestamp(data['timestamp']/1000)) # 양수면 파는사람이 많다
         wm.terminate()
 
 real_time_conclusion()
