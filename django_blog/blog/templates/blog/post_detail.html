@@ -1,244 +1,158 @@
-<!DOCTYPE html>
-{% load static %}
-<html lang="ko">
+{% extends 'blog/base.html' %}
+{% load crispy_forms_tags %}
 
-<head>
+{% block head_title %}
+    {{ post.title }} - Blog
+{% endblock %}
 
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-  <meta name="description" content="">
-  <meta name="author" content="">
 
-  <title>{{ post.title }} - Blog</title>
-
-  <!-- Bootstrap core CSS -->
-  <link href="{% static 'blog/bootstrap/bootstrap.min.css' %}" rel="stylesheet" media="screen">
-
-  <!-- Custom styles for this template -->
-  <link rel="stylesheet" href="{% static 'blog/css/blog-post.css' %}" media="screen">
-  <script src="https://kit.fontawesome.com/726bbd6862.js" crossorigin="anonymous"></script>
-  <!-- <link href="{% static 'blog/css/blog-post.css' %}" rel="stylesheet" media="screen"> -->
-
-</head>
-
-<body>
-
-  <!-- Navigation -->
-  <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-    <div class="container">
-      <a class="navbar-brand" href="#">Start Bootstrap</a>
-      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
-        <span class="navbar-toggler-icon"></span>
-      </button>
-      <div class="collapse navbar-collapse" id="navbarResponsive">
-        <ul class="navbar-nav ml-auto">
-          <li class="nav-item active">
-            <a class="nav-link" href="#">Home
-              <span class="sr-only">(current)</span>
-            </a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="#">About</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="#">Services</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="#">Contact</a>
-          </li>
-        </ul>
-      </div>
-    </div>
-  </nav>
-
-  <!-- Page Content -->
-  <div class="container">
-
-    <div class="row">
-
-      <!-- Post Content Column -->
-      <div class="col-lg-8">
+{% block main_area %}
+    <div id="post-area">
+        {% if post.category %}
+            <span class="badge badge-secondary float-right">{{ post.category }}</span>
+        {% else %}
+            <span class="badge badge-secondary float-right">미분류</span>
+        {% endif %}
 
         <!-- Title -->
         <h1 class="mt-4">{{ post.title }}</h1>
         <h5 class="text-muted">{{ post.hook_text }}</h5>
-
         <!-- Author -->
         <p class="lead">
-          by
-          <a href="#">작성자(개발중)</a>
+            by
+            <a href="#">{{ post.author | upper }}</a>
         </p>
 
         <hr>
 
+        {% if user.is_authenticated and user == post.author %}
+            <a class="btn btn-info btn-sm float-right" href="/blog/update_post/{{ post.pk }}/" role="button"><i class="fas fa-pen"></i>  Edit Post</a>
+        {% endif %}
+
         <!-- Date/Time -->
-        <p>{{ post.created_at }}</p>
+        <p>Posted on {{ post.created_at }}</p>
 
         <hr>
 
         <!-- Preview Image -->
         {% if post.head_image %}
-          <img class="img-fluid rounded" src="{{ post.head_image.url }}" alt="{{ post.title }} head_image">
+            <img class="img-fluid rounded" src="{{ post.head_image.url }}" alt="{{ post.title }} head_image">
         {% else %}
-          <img class="img-fluid rounded" src="https://picsum.photos/seed/{{ p.id }}/800/200" alt="random_image">
+            <img class="img-fluid rounded" src="https://picsum.photos/seed/{{ post.id }}/800/200" alt="random_image">
         {% endif %}
+
+
         <hr>
 
         <!-- Post Content -->
-        <p>{{ post.content }}</p>
+        <p>{{ post.get_content_markdown | safe }}</p>
+
+        {% if post.tags.exists %}
+            <i class="fas fa-tags"></i>
+            {% for tag in post.tags.all %}
+                <a href="{{ tag.get_absolute_url }}" class="badge badge-light">{{ tag }}</a>
+            {% endfor %}
+            <br/>
+            <br/>
+        {% endif %}
+
 
         {% if post.file_upload %}
-          <a href="{{ post.file_upload.url }}" class="btn btn-outline-dark" role="button">
-            Download:
+            <a href="{{ post.file_upload.url }}" class="btn btn-outline-dark" role="button" download>
+                Download:
 
-            {% if post.get_file_ext == 'csv' %}
-              <i class="fas fa-file-csv"></i>
-            {% elif post.get_file_ext == 'xlsx' or post.get_file_ext == 'xls' %}
-              <i class="fas fa-file-excel"></i>
-            {% elif post.get_file_ext == 'docx' or post.get_file_ext == 'doc' %}
-              <i class="fas fa-file-word"></i>
-            {% else %}
-              <i class="fas fa-file"></i>
-            {% endif %}
-            {{ post.get_file_name }}
-          </a>
+                {% if post.get_file_ext == 'csv' %}
+                    <i class="fas fa-file-csv"></i>
+                {% elif post.get_file_ext == 'xlsx' or post.get_file_ext == 'xls' %}
+                    <i class="fas fa-file-excel"></i>
+                {% elif post.get_file_ext == 'docx' or post.get_file_ext == 'doc' %}
+                    <i class="fas fa-file-word"></i>
+                {% else %}
+                    <i class="far fa-file"></i>
+                {% endif %}
+
+                {{ post.get_file_name }}
+            </a>
         {% endif %}
+
+        <hr>
+    </div>
+
+    <div id="comment-area">
         <!-- Comments Form -->
         <div class="card my-4">
-          <h5 class="card-header">Leave a Comment:</h5>
-          <div class="card-body">
-            <form>
-              <div class="form-group">
-                <textarea class="form-control" rows="3"></textarea>
-              </div>
-              <button type="submit" class="btn btn-primary">Submit</button>
-            </form>
-          </div>
-        </div>
-
-        <!-- Single Comment -->
-        <div class="media mb-4">
-          <img class="d-flex mr-3 rounded-circle" src="http://placehold.it/50x50" alt="">
-          <div class="media-body">
-            <h5 class="mt-0">Commenter Name</h5>
-            Cras sit amet nibh libero, in gravida nulla. Nulla vel metus scelerisque ante sollicitudin. Cras purus odio, vestibulum in vulputate at, tempus viverra turpis. Fusce condimentum nunc ac nisi vulputate fringilla. Donec lacinia congue felis in faucibus.
-          </div>
-        </div>
-
-        <!-- Comment with nested comments -->
-        <div class="media mb-4">
-          <img class="d-flex mr-3 rounded-circle" src="http://placehold.it/50x50" alt="">
-          <div class="media-body">
-            <h5 class="mt-0">Commenter Name</h5>
-            Cras sit amet nibh libero, in gravida nulla. Nulla vel metus scelerisque ante sollicitudin. Cras purus odio, vestibulum in vulputate at, tempus viverra turpis. Fusce condimentum nunc ac nisi vulputate fringilla. Donec lacinia congue felis in faucibus.
-
-            <div class="media mt-4">
-              <img class="d-flex mr-3 rounded-circle" src="http://placehold.it/50x50" alt="">
-              <div class="media-body">
-                <h5 class="mt-0">Commenter Name</h5>
-                Cras sit amet nibh libero, in gravida nulla. Nulla vel metus scelerisque ante sollicitudin. Cras purus odio, vestibulum in vulputate at, tempus viverra turpis. Fusce condimentum nunc ac nisi vulputate fringilla. Donec lacinia congue felis in faucibus.
-              </div>
+            <h5 class="card-header">Leave a Comment:</h5>
+            <div class="card-body">
+                {% if user.is_authenticated %}
+                    <form id="comment-form" method="POST" action="{{ post.get_absolute_url }}new_comment/">
+                        {% csrf_token %}
+                        <div class="form-group">
+                            {{ comment_form | crispy }}
+                        </div>
+                        <button type="submit" class="btn btn-primary">Submit</button>
+                    </form>
+                {% else %}
+                    <a role="button" class="btn btn-outline-dark btn-block btn-sm" href="#" data-toggle="modal" data-target="#loginModal">Log in and leave a comment</a>
+                {% endif %}
             </div>
-
-            <div class="media mt-4">
-              <img class="d-flex mr-3 rounded-circle" src="http://placehold.it/50x50" alt="">
-              <div class="media-body">
-                <h5 class="mt-0">Commenter Name</h5>
-                Cras sit amet nibh libero, in gravida nulla. Nulla vel metus scelerisque ante sollicitudin. Cras purus odio, vestibulum in vulputate at, tempus viverra turpis. Fusce condimentum nunc ac nisi vulputate fringilla. Donec lacinia congue felis in faucibus.
-              </div>
-            </div>
-
-          </div>
         </div>
 
-      </div>
+        {% if post.comment_set.exists %}
+            {% for comment in post.comment_set.iterator %}
+                <!-- Single Comment -->
+                <div class="media mb-4" id="comment-{{ comment.pk }}">
+                    <img class="d-flex mr-3 rounded-circle" src="{{ comment.get_avatar_url }}" alt="{{ comment.author }}" width="60px">
+                    <div class="media-body">
+                        {% if user.is_authenticated and comment.author == user %}
+                            <div class="float-right">
+                                <a role="button"
+                                   class="btn btn-sm btn-info"
+                                   id="comment-{{ comment.pk }}-update-btn"
+                                   href="/blog/update_comment/{{ comment.pk }}/">
+                                    edit
+                                </a>
+                                <a role="button"
+                                   href="#"
+                                   id="comment-{{ comment.pk }}-delete-modal-btn"
+                                   class="btn btn-sm btn-danger"
+                                   data-toggle="modal" data-target="#deleteCommentModal-{{ comment.pk }}">
+                                    delete
+                                </a>
+                            </div>
 
-      <!-- Sidebar Widgets Column -->
-      <div class="col-md-4">
+                            <!-- Modal -->
+                            <div class="modal fade" id="deleteCommentModal-{{ comment.pk }}" tabindex="-1" role="dialog" aria-labelledby="deleteCommentModalLabel" aria-hidden="true">
+                                <div class="modal-dialog" role="document">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title" id="deleteModalLabel">Are You Sure?</h5>
+                                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                <span aria-hidden="true">&times;</span>
+                                            </button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <del>{{ comment | linebreaks }}</del>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                                            <a role="button" class="btn btn-danger" href="/blog/delete_comment/{{ comment.pk }}/">Delete</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
 
-        <!-- Search Widget -->
-        <div class="card my-4">
-          <h5 class="card-header">Search</h5>
-          <div class="card-body">
-            <div class="input-group">
-              <input type="text" class="form-control" placeholder="Search for...">
-              <span class="input-group-append">
-                <button class="btn btn-secondary" type="button">Go!</button>
-              </span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Categories Widget -->
-        <div class="card my-4">
-          <h5 class="card-header">Categories</h5>
-          <div class="card-body">
-            <div class="row">
-              <div class="col-lg-6">
-                <ul class="list-unstyled mb-0">
-                  <li>
-                    <a href="#">Web Design</a>
-                  </li>
-                  <li>
-                    <a href="#">HTML</a>
-                  </li>
-                  <li>
-                    <a href="#">Freebies</a>
-                  </li>
-                </ul>
-              </div>
-              <div class="col-lg-6">
-                <ul class="list-unstyled mb-0">
-                  <li>
-                    <a href="#">JavaScript</a>
-                  </li>
-                  <li>
-                    <a href="#">CSS</a>
-                  </li>
-                  <li>
-                    <a href="#">Tutorials</a>
-                  </li>
-                </ul>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Side Widget -->
-        <div class="card my-4">
-          <h5 class="card-header">Side Widget</h5>
-          <div class="card-body">
-            You can put anything you want inside of these side widgets. They are easy to use, and feature the new Bootstrap 4 card containers!
-          </div>
-        </div>
-
-      </div>
-
+                        {% endif %}
+                        <h5 class="mt-0">
+                            {{ comment.author.username }}
+                            &nbsp;&nbsp;<small class="text-muted">{{ comment.created_at }}</small>
+                        </h5>
+                        <p>{{ comment.content | linebreaks }}</p>
+                        {% if comment.created_at != comment.modified_at %}
+                            <p class="text-muted float-right"><small>Updated: {{ comment.modified_at }}</small></p>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endfor %}
+        {% endif %}
     </div>
-    <!-- /.row -->
-
-  </div>
-  <!-- /.container -->
-
-  <!-- Footer -->
-  <footer class="py-5 bg-dark">
-    <div class="container">
-      <p class="m-0 text-center text-white">Copyright &copy; Your Website 2020</p>
-    </div>
-    <!-- /.container -->
-  </footer>
-
-  <!-- Bootstrap core JavaScript -->
-  <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js"
-        integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n"
-        crossorigin="anonymous"></script>
-  <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"
-        integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo"
-        crossorigin="anonymous"></script>
-  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"
-        integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6"
-        crossorigin="anonymous"></script>
-
-</body>
-
-</html>
+{% endblock %}

@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+{% load static %}
+<head>
+    <title>{% block head_title %}Blog{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'blog/bootstrap/bootstrap.min.css' %}" media="screen">
+
+    <script src="https://kit.fontawesome.com/726bbd6862.js" crossorigin="anonymous"></script>
+</head>
+
+<body>
+
+{% include 'blog/navbar.html' %}
+
+<div class="container my-3">
+    <div class="row">
+        <div class="col-md-8 col-lg-9" id="main-area">
+            {% block main_area %}
+            {% endblock %}
+        </div>
+
+        <div class="col-md-4 col-lg-3">
+            <!-- Search Widget -->
+            <div class="card my-4">
+                <h5 class="card-header">Search</h5>
+                <div class="card-body">
+                    <div class="input-group">
+                        <input type="text" class="form-control" placeholder="Search for..." id="search-input">
+                        <span class="input-group-btn">
+                                <button class="btn btn-secondary" type="button" onclick="searchPost();">Go!</button>
+                            </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Categories Widget -->
+            <div class="card my-4" id="categories-card">
+                <h5 class="card-header">Categories</h5>
+                <div class="card-body">
+                    <div class="row">
+
+                        <ul>
+                            {% for category in categories %}
+                                <li>
+                                    <a href="{{ category.get_absolute_url }}">{{ category }} ({{ category.post_set.count }})</a>
+                                </li>
+                            {% endfor %}
+                            <li>
+                                <a href="/blog/category/no_category/">미분류 ({{ no_category_post_count }})</a>
+                            </li>
+                        </ul>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function searchPost(){
+        let searchValue = document.getElementById('search-input').value.trim();
+        if (searchValue.length > 1){
+            location.href="/blog/search/" + searchValue + "/";
+        }
+        else{
+            alert('검색어('+ searchValue +')가 너무 짧습니다.');
+        }
+    };
+
+    document.getElementById('search-input').addEventListener('keyup', function(event){
+        if(event.key === 'Enter'){
+            searchPost();
+        }
+    });
+</script>
+
+{% include 'blog/footer.html' %}
+
+<script src="https://code.jquery.com/jquery-3.4.1.slim.min.js"
+        integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n"
+        crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"
+        integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo"
+        crossorigin="anonymous"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"
+        integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6"
+        crossorigin="anonymous"></script>
+
+</body>
+
+</html>

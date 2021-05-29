@@ -1,15 +1,13 @@
 version: '3'
 
-
 services:
   web:
     build: .
-    command: python manage.py runserver 0.0.0.0:8000
-    command: gunicorn mysite.wsgi:application --bind 0.0.0.0:8000
+    command: gunicorn do_it_django_prj.wsgi:application --bind 0.0.0.0:8000
     volumes:
       - ./:/usr/src/app/
     ports:
-      - 8000:8000 
+      - 8000:8000
     env_file:
       - ./.env.dev
     depends_on:
@@ -19,8 +17,8 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data/
     environment:
-      - POSTGRES_USER=django_blog_db_user
-      - POSTGRES_PASSWORD=django_blog_db_password
-      - POSTGRES_DB=django_blog_dev
+      - POSTGRES_USER=do_it_django_db_user
+      - POSTGRES_PASSWORD=do_it_django_db_password
+      - POSTGRES_DB=do_it_django_dev
 volumes:
   postgres_data:
